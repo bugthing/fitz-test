@@ -1,1 +1,146 @@
-Hello
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Fitzdares</title>
+<!--
+All this inline css and js would clearly be better served up by rails (asset pipeline etc)
+A JS framework would fit here, some simple React componants would work.. but while sketing out his works
+-->
+    <script src='https://code.jquery.com/jquery-3.0.0.min.js'
+	        integrity='sha256-JmvOoLtYsmqlsWxa7mDSLMwa6dZ9rrIdtrrVYRnDRH0='
+	        crossorigin='anonymous'></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <style type="text/css">
+      html,
+      body {
+        height: 100%;
+      }
+      #wrap {
+        min-height: 100%;
+        height: auto !important;
+        height: 100%;
+        margin: 0 auto -60px;
+      }
+      #push,
+      #footer {
+        height: 60px;
+      }
+      #footer {
+        background-color: #f5f5f5;
+      }
+      @media (max-width: 767px) {
+        #footer {
+          margin-left: -20px;
+          margin-right: -20px;
+          padding-left: 20px;
+          padding-right: 20px;
+        }
+      }
+      .container {
+        width: auto;
+        max-width: 680px;
+      }
+      .container .credit {
+        margin: 20px 0;
+      }
+      .number {
+          padding: 5px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="wrap">
+      <div class="container">
+        <div class="page-header">
+          <h1>Fizz Buzz - UI</h1>
+        </div>
+        <p class="lead"> <div id='fizz-buzz'> </div> </p>
+        <p class="lead"> <div id='pager'> </div> </p>
+        <p class="lead"> 
+          <form class="form-inline">
+            <div class="form-group">
+              <div class="input-group">
+                <div class="input-group-addon">Page</div>
+                <input id='page'      type=number placeholder='page number'     min='1' onchange='fetchGame();' class='form-control' />
+                <div class="input-group-addon">Per Page</div>
+                    <input id='page_size' type=number placeholder='number per page' min='1' onchange='fetchGame();' class='form-control' />
+                <div class="input-group-addon">ID</div>
+                    <input id='user_id'   type=number placeholder='user id'                 onchange='fetchGame();' class='form-control' />
+              </div>
+            </div>
+          </form>
+        </p>
+      </div>
+      <div id="push"></div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <p class="muted credit">Completed by <a href="http://github.com/bugthing">Ben Martin</a></p>
+      </div>
+    </div>
+
+  </body>
+<script language='javascript'>
+
+function numberComp(fb, bold) {
+  var css = 'btn btn-primary';
+  if (bold) css = css + ' btn-danger';
+  return '<button type="button" class="' + css + 
+         '" onclick="addFavorite(this);" value="' + fb[0] +
+         '" title="' + fb[0] + '"' +
+         '">' + fb[1] +
+         '</button>';
+};
+
+function addFavorite(btn) {
+  var url = '/fav';
+  var data = { 'number': btn.value,
+               'user_id': $('#user_id').val() };
+  $.post(url, data).then(function(result){
+    fetchGame();
+  });
+};
+
+function generateFizzBuzz(game, favs) {
+  var html = '';
+  var isFav = false;
+  game.forEach(function(fb) {
+    html = html + numberComp(fb, isFavorite(fb, favs));
+  });
+  return html;
+};
+
+function isFavorite(fb, favs) {
+  var isFav = false;
+  if (favs.indexOf(fb[0].toString()) >= 0) isFav = true;
+  return isFav;
+};
+
+function defaultedNumber(val, def) {
+  var p = parseInt(val);
+  if(isNaN(p)) p = def;
+  return p;
+}
+
+function fetchGame() {
+  var url = '/fizz';
+  var data = { 'page': defaultedNumber($('#page').val(), 1),
+               'page_size': defaultedNumber($('#page_size').val(), 100),
+               'user_id': $('#user_id').val() };
+  $.ajax({
+    dataType: 'json',
+    url: url,
+    data: data
+  }).then(function(data) {
+    $('#fizz-buzz').html(generateFizzBuzz(data.fizz_buzz, data.favorites));
+    $('#pager').html(data.pager);
+  });
+};
+
+$(document).ready(fetchGame());
+
+</script>
+</html>
